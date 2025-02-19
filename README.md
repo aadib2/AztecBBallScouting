@@ -14,6 +14,7 @@ Display data on a user friendly front end interface. Could be react, HTML or a s
 Note: This software will only be used by coaches and student managers, so usability and simpplicity is important.
 
 Resrouces:
+
 NCAA Scraping option: https://sportsreference.readthedocs.io/en/latest/ncaab.html
 
 Deepseek Scraping option: https://www.youtube.com/watch?v=WkLdLJJzV1k&feature=youtu.be
