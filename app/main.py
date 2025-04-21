@@ -21,7 +21,11 @@ def get_player_stats(player: str = Query(...)):
     return {"player": player, "stats": stats}
 
 
+# player name formatting in url can be the following ways:
+# lamont-butler
+# lamont%20butler
 @app.get("/players/{name}")
 def get_player_stats(name: str):
     raw_stats = test_scrape(name)
+    print(raw_stats)
     return PlayerStats(**raw_stats)
