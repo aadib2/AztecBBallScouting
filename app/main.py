@@ -1,6 +1,6 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Query
-from app.scraper import scrape_player_data, test_scrape
+from app.scraper import scrape_player_data, test_scrape, scrape_season_stats
 from app.schema import PlayerStats
 
 
@@ -28,4 +28,10 @@ def get_player_stats(player: str = Query(...)):
 def get_player_stats(name: str):
     raw_stats = test_scrape(name)
     print(raw_stats)
+    return PlayerStats(**raw_stats)
+
+
+@app.get("/players/{name}/season/{year}")
+def get_season_stats(name: str, year: str):
+    raw_stats = scrape_season_stats(name, year)
     return PlayerStats(**raw_stats)
