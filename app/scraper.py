@@ -96,6 +96,62 @@ def scrape_season_stats(player: str, season: str) -> dict:
     logger.info(f"Scraped {season} stats for {player}: {results}")
     return results
 
+def scrape_career_stats_totals(player: str) -> dict:
+    player_slug = format_player_name(player)
+    url = f"https://www.sports-reference.com/cbb/players/{player_slug}.html"
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise ValueError(f"Player not found: {url}")
+
+    soup = BeautifulSoup(response.text, "html.parser")
+    comments = soup.find_all(string=lambda text: isinstance(text, Comment))
+    for comment in comments:
+        soup.append(BeautifulSoup(comment, "html.parser"))
+
+    table = soup.find("table", {"id": "players_totals"})
+    if not table:
+        raise ValueError("Totals table not found.")
+    row = table.find("tr", {"id": "players_totals.Career"})
+    if not row:
+        raise ValueError("Career totals row not found.")
+
+    key_map = {
+        "year_id": "season",
+        "g": "games_played",
+        "gs": "games_started",
+        "mp": "minutes_played",
+        "fg": "field_goals_made",
+        "fga": "field_goal_attempts",
+        "fg_pct": "fg_percentage",
+        "fg3": "three_pt_made",
+        "fg3a": "three_pt_attempts",
+        "fg3_pct": "three_pt_percentage",
+        "fg2": "two_pt_made",
+        "fg2a": "two_pt_attempts",
+        "fg2_pct": "two_pt_percentage",
+        "efg_pct": "effective_fg_percentage",
+        "ft": "free_throws_made",
+        "fta": "free_throw_attempts",
+        "ft_pct": "free_throw_percentage",
+        "orb": "offensive_rebounds",
+        "drb": "defensive_rebounds",
+        "trb": "total_rebounds",
+        "ast": "assists",
+        "stl": "steals",
+        "blk": "blocks",
+        "tov": "turnovers",
+        "pf": "personal_fouls",
+        "pts": "points",
+        "awards": "awards"
+    }
+
+    results = {}
+    for cell in row.find_all(["td", "th"]):
+        key = key_map.get(cell.get("data-stat"))
+        if key and cell.text.strip():
+            results[key] = cell.text.strip()
+    return results
+
 def test_scrape(player):
     logger = logging.getLogger("uvicorn.error")
     player_slug = format_player_name(player)
