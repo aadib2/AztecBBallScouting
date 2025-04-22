@@ -2,6 +2,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Query
 from app.scraper import test_scrape, scrape_season_stats, scrape_career_stats_totals
 from app.schema import PlayerStats
+from fastapi.responses import Response
 
 
 app = FastAPI()
@@ -31,7 +32,13 @@ def get_season_stats(name: str, year: str):
     return PlayerStats(**raw_stats)
 
 @app.get("/players/{name}/career_totals")
-def get_career_stats_totals(name: str):
+def get_career_totals(name: str, pretty: bool = Query(False)):
     raw_stats = scrape_career_stats_totals(name)
     filtered_stats = {k: v for k, v in raw_stats.items() if v is not None}
+
+    if pretty:
+        import json
+        pretty_json = json.dumps(filtered_stats, indent=4)
+        return Response(content=pretty_json, media_type="application/json")
+
     return filtered_stats
