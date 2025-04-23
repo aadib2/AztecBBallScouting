@@ -104,6 +104,7 @@ def scrape_career_stats_totals(player: str) -> dict:
         raise ValueError(f"Player not found: {url}")
 
     soup = BeautifulSoup(response.text, "html.parser")
+
     comments = soup.find_all(string=lambda text: isinstance(text, Comment))
     for comment in comments:
         soup.append(BeautifulSoup(comment, "html.parser"))
@@ -111,14 +112,26 @@ def scrape_career_stats_totals(player: str) -> dict:
     table = soup.find("table", {"id": "players_totals"})
     if not table:
         raise ValueError("Totals table not found.")
-    row = table.find("tr", {"id": "players_totals.Career"})
-    if not row:
+
+    rows = table.find_all("tr")
+    seasons_played = 0
+    for row in rows:
+        row_id = row.get("id", "")
+        if row_id == "players_totals.Career":
+            break
+        if re.match(r"players_totals\.\d{4}", row_id):
+            seasons_played += 1
+
+    career_row = table.find("tr", {"id": "players_totals.Career"})
+    if not career_row:
         raise ValueError("Career totals row not found.")
 
     key_map = {
         "year_id": "season",
         "g": "games_played",
+        "games": "games_played",
         "gs": "games_started",
+        "games_started": "games_started",
         "mp": "minutes_played",
         "fg": "field_goals_made",
         "fga": "field_goal_attempts",
@@ -146,11 +159,14 @@ def scrape_career_stats_totals(player: str) -> dict:
     }
 
     results = {}
-    for cell in row.find_all(["td", "th"]):
+    for cell in career_row.find_all(["td", "th"]):
         key = key_map.get(cell.get("data-stat"))
         if key and cell.text.strip():
             results[key] = cell.text.strip()
+
+    results["seasons_played"] = seasons_played
     return results
+
 
 def test_scrape(player):
     logger = logging.getLogger("uvicorn.error")
