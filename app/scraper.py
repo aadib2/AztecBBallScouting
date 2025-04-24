@@ -161,13 +161,11 @@ def scrape_career_stats_totals(player: str) -> dict:
         "awards": "awards"
     }
 
-    results = {}
+    results = {"seasons_played": seasons_played}
     for cell in career_row.find_all(["td", "th"]):
         key = key_map.get(cell.get("data-stat"))
         if key and cell.text.strip():
             results[key] = cell.text.strip()
-
-    results["seasons_played"] = seasons_played
     return results
 
 def slug_to_display_name(slug: str) -> str:
