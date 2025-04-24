@@ -171,7 +171,6 @@ def scrape_career_stats_totals(player: str) -> dict:
     return results
 
 def slug_to_display_name(slug: str) -> str:
-    """Converts slug (e.g. "air-force") to display name (e.g. "Air Force")"""
     return slug.replace("-", " ").title()
 
 def scrape_basic_team_stats(team: str, season: str) -> dict:
@@ -206,7 +205,6 @@ def scrape_basic_team_stats(team: str, season: str) -> dict:
         raise ValueError(f"Team {display_name} not found in {season} stats.")
 
     key_map ={
-       "school_name": "school_name",
        "g": "games",
        "wins" : "wins",
        "losses" : "losses",
@@ -239,7 +237,8 @@ def scrape_basic_team_stats(team: str, season: str) -> dict:
        "tov": "turnovers",
        "pf": "personal_fouls",
    }
-    results = {}
+    results = {"school_name": display_name,
+               "season": season}
     # Include <th> as well since "ranker" is in a <th>, not <td>
     for cell in row.find_all(["td", "th"]):
         key = key_map.get(cell.get("data-stat"))
