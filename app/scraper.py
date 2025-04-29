@@ -667,7 +667,41 @@ def get_play_by_play(game_id: str):
     play_by_play = []
 
     for play in plays:
-        play_by_play.append({
+        play_by_play.insert(0, {
+            'period': play.get('period', {}).get('number', ''),
+            'clock': play.get('clock', {}).get('displayValue', ''),
+            'description': play.get('text', ''),
+            'team': play.get('team', {}).get('displayName', ''),
+            home_abbr: play.get('homeScore', ''),
+            away_abbr: play.get('awayScore', '')
+        })
+
+    return play_by_play
+
+def get_nba_play_by_play(game_id: str):
+    url = f"https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event={game_id}"
+
+    response = requests.get(url, headers=headers)
+    data = response.json()
+
+    if 'plays' not in data:
+        return {"error": "No play-by-play data found for this game ID."}
+
+    competitors = data.get('header', {}).get('competitions', [{}])[0].get('competitors', [])
+    if len(competitors) < 2:
+        return {"error": "Could not determine teams."}
+
+    home_team = next((c for c in competitors if c.get("homeAway") == "home"), competitors[0])
+    away_team = next((c for c in competitors if c.get("homeAway") == "away"), competitors[1])
+
+    home_abbr = home_team.get('team', {}).get('abbreviation', 'HOME')
+    away_abbr = away_team.get('team', {}).get('abbreviation', 'AWAY')
+
+    plays = data['plays']
+    play_by_play = []
+
+    for play in plays:
+        play_by_play.insert(0, {
             'period': play.get('period', {}).get('number', ''),
             'clock': play.get('clock', {}).get('displayValue', ''),
             'description': play.get('text', ''),

@@ -1,6 +1,6 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Query, HTTPException
-from app.scraper import test_scrape, scrape_season_stats, scrape_team_schedule, router, scrape_career_stats_totals, scrape_basic_team_stats, get_play_by_play
+from app.scraper import test_scrape, scrape_season_stats, scrape_team_schedule, router, scrape_career_stats_totals, scrape_basic_team_stats, get_play_by_play, get_nba_play_by_play
 from app.schema import PlayerStats, TeamStats
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
@@ -103,6 +103,18 @@ def get_play_by_play_endpoint(
 
     return data
 
+@app.get("/nbaplaybyplay/")
+def get_nba_play_by_play_endpoint(
+        gameId: str = Query(..., description="ESPN game ID, e.g., '401705764'"),
+        pretty: bool = Query(False, description="Return pretty-printed JSON")
+):
+    data = get_nba_play_by_play(gameId)
+
+    if pretty:
+        pretty_json = json.dumps(data, indent=4)
+        return Response(content=pretty_json, media_type="application/json")
+
+    return data
 
 # Include the router
 app.include_router(router)
